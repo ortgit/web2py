@@ -1382,6 +1382,10 @@ class Auth(object):
         next = current.request.vars._next
         if isinstance(next, (list, tuple)):
             next = next[0]
+        if next and self.settings.prevent_open_redirect_attacks:
+            items = next.split('/')
+            if '//' in next and items[2] != current.request.env.http_host:
+                next = None
         return next
 
     def _get_user_id(self):
@@ -2341,10 +2345,6 @@ class Auth(object):
 
         ### use session for federated login
         snext = self.get_vars_next()
-        if snext and self.settings.prevent_open_redirect_attacks:
-            items = snext.split('/')
-            if '//' in snext and items[2] != request.env.http_host:
-                snext = None
 
         if snext:
             session._auth_next = snext
